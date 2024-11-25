@@ -1,0 +1,555 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>《A Survey on Multimodal Large Language Models》阅读笔记 | Tony.Lin的博客</title><meta name="author" content="Tony.Lin,tonylin1026@gmail.com"><meta name="copyright" content="Tony.Lin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="MLLM前也有许多多模态研究，分为判别和生成两种方向。 判别的代表是OpenAI CLIP，尝试对齐图片文本对的编码，从而将视觉和文本信息投影到统一的表达空间；生成的代表是OFA，将多模态任务统一为Seq2Seq模式。 MLLM可以类比生成方向，但同时也有两个特点：1. MLLM基于Billion级别的LLM，这是先前成果所达不到的；2. MLLM使用新的训练范式来释放其能力，如多模态指令微调。这">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《A Survey on Multimodal Large Language Models》阅读笔记">
+<meta property="og:url" content="http://tony1026.github.io/2024/10/14/SurveyofMLM/index.html">
+<meta property="og:site_name" content="Tony.Lin的博客">
+<meta property="og:description" content="MLLM前也有许多多模态研究，分为判别和生成两种方向。 判别的代表是OpenAI CLIP，尝试对齐图片文本对的编码，从而将视觉和文本信息投影到统一的表达空间；生成的代表是OFA，将多模态任务统一为Seq2Seq模式。 MLLM可以类比生成方向，但同时也有两个特点：1. MLLM基于Billion级别的LLM，这是先前成果所达不到的；2. MLLM使用新的训练范式来释放其能力，如多模态指令微调。这">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://tony1026.github.io/2024/10/14/SurveyofMLM/Pastedimage20240528154443.png">
+<meta property="article:published_time" content="2024-10-14T10:39:34.000Z">
+<meta property="article:modified_time" content="2024-11-25T08:17:44.213Z">
+<meta property="article:author" content="Tony.Lin">
+<meta property="article:tag" content="NLP">
+<meta property="article:tag" content="Survey">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://tony1026.github.io/2024/10/14/SurveyofMLM/Pastedimage20240528154443.png"><link rel="shortcut icon" href="/images/favicon.ico"><link rel="canonical" href="http://tony1026.github.io/2024/10/14/SurveyofMLM/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//static.cloudflareinsights.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        if (name && globalFn[key][name]) return
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script defer="defer" data-pjax="data-pjax" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon="{&quot;token&quot;: &quot;4d7fbe1cc2e44f6384ad64c4b5ec4d1c&quot;}"></script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: {"limitDay":365,"position":"top","messagePrev":"自上次更新以来已经过了","messageNext":"天，文章内容可能已过时。"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":150,"languages":{"author":"作者: Tony.Lin","link":"链接: ","source":"来源: Tony.Lin的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-center"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: true,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '《A Survey on Multimodal Large Language Models》阅读笔记',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-11-25 16:17:44'
+}</script><link rel='stylesheet' href='https://font.sec.miui.com/font/css?family=MiSans:0:Chinese_Simplify,Latin&display=swap'><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/images/icon.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/2024/10/14/SurveyofMLM/Pastedimage20240528154443.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="/images/favicon.ico" alt="Logo"><span class="site-name">Tony.Lin的博客</span></a><a class="nav-page-title" href="/"><span class="site-name">《A Survey on Multimodal Large Language Models》阅读笔记</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">《A Survey on Multimodal Large Language Models》阅读笔记</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-10-14T10:39:34.000Z" title="发表于 2024-10-14 18:39:34">2024-10-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-11-25T08:17:44.213Z" title="更新于 2024-11-25 16:17:44">2024-11-25</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>26分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span><span class="post-meta-separator">|</span><span class="post-meta-commentcount"><i class="far fa-comments fa-fw post-meta-icon"></i><span class="post-meta-label">评论数:</span><a class="disqusjs-comment-count" href="http://tony1026.github.io/2024/10/14/SurveyofMLM/#post-comment"><i class="fa-solid fa-spinner fa-spin"></i></a></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>MLLM前也有许多多模态研究，分为判别和生成两种方向。<br>
+判别的代表是<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/477760524">OpenAI CLIP</a>，尝试对齐图片文本对的编码，从而将视觉和文本信息投影到统一的表达空间；生成的代表是<a target="_blank" rel="noopener" href="https://github.com/OFA-Sys/OFA">OFA</a>，将多模态任务统一为Seq2Seq模式。<br>
+MLLM可以类比生成方向，但同时也有两个特点：1. MLLM基于Billion级别的LLM，这是先前成果所达不到的；2. MLLM使用新的训练范式来释放其能力，如多模态指令微调。这两点使得它能够拥有各种全新的能力。<br>
+现有的MLLM成果关注基于文本、图片、音频、视频输出文本的工作。更进一步的工作包括：1. 在更细的粒度上获取信息，如通过图片框或者点击物品来控制输入信息；2. 支持更多的输入输出模态；3. 更多的语言支持，如中文；4. 扩展到更多的应用场景；如应用于其他学科、引入可视化组件和现实感知模块</p>
+<img src="/2024/10/14/SurveyofMLM/Pastedimage20240528154443.png" class="" title="Pastedimage20240528154443">
+<h2 id="Architecture">Architecture</h2>
+<p>典型的MLLM系统由三部分组成：预训练模态编码器（视觉、听觉）、预训练LLM（大脑）、连接两者的模态接口（对齐不同模态的组件）；此外也有一些系统配备了输出其他模态的生成器。</p>
+<img src="/2024/10/14/SurveyofMLM/Pastedimage20240528154721.png" class="" title="Pastedimage20240528154721">
+<h3 id="模态编码器">模态编码器</h3>
+<p>将图片、视频、音频压缩成更紧凑的表示，通常选择采用现成的预训练编码器。</p>
+<ul>
+<li>CLIP：使用庞大的图像-文本对数据集进行训练；使用图片编码器（ResNet或ViT，ViT更优）将图片编码，文本编码器（GPT）对文本进行编码；采用对比损失函数，使得匹配的图片-文本对在多模态空间中距离更近，不相关的距离更远</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/baaivision/EVA/tree/master/EVA-CLIP">EVA-CLIP</a>：CLIP的优化版；采用EVA模型初始化CLIP；引入LAMB优化器；通过FLIP方法mask掉50%的图片块；</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/mlfoundations/open_clip">OpenCLIP-ConvNext-L</a>：将图片编码器换成ConvNext，以适应更大的分辨率，获取不同层面的特征。</li>
+<li><a target="_blank" rel="noopener" href="https://www.adept.ai/blog/fuyu-8b">Fuyu-8B</a>：直接将图片块线性投射到Transformer的第一层，将图片块视作与文本Token相似的输入，并加入换行标记，从而可以处理任何分辨率的图像，且推理高效</li>
+</ul>
+<p>决定编码器性能的三个要素：分辨率、参数量和训练数据量。现有的研究表明高分辨率对编码器性能提升巨大，现有的提高方法有以下两种：</p>
+<ol>
+<li>直接提高分辨率，采用使用高分辨率训练（<a target="_blank" rel="noopener" href="https://github.com/QwenLM/Qwen-VL">Qwen-VL</a>）或替换高分辨率编码器（<a target="_blank" rel="noopener" href="https://github.com/haotian-liu/LLaVA">LLaVA</a>）的方法。<br>
+<a target="_blank" rel="noopener" href="https://github.com/THUDM/CogVLM">CogAgent</a>：划分高分辨率编码器和低分辨率编码器，高分辨率图像通过交叉注意力注入低分辨率分支；</li>
+<li>分块方法：将高分辨率图片分割成小图片块，获取局部信息，而原图片压缩成小图片后获取全局信息（<a target="_blank" rel="noopener" href="https://github.com/Yuliang-Liu/Monkey">Monkey</a><a target="_blank" rel="noopener" href="https://github.com/Alpha-VLLM/LLaMA2-Accessory">SPHINX</a>)<br>
+参数量和训练数据则不太重要。</li>
+</ol>
+<p>此外编码器也可以应用于其他模态：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/LAION-AI/CLAP">CLAP</a>：音频编码<br>
+类似CLIP，CLAP将音频与文本投影到相同的编码空间。</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/facebookresearch/ImageBind">Image-Bind</a>：支持文本、图片、视频、音频、热力图、深度图<br>
+将图片与其他所有模态进行对齐，即对齐<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>I</mi><mo separator="true">,</mo><mi>M</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(I,M)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mclose">)</span></span></span></span>：<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>q</mi><mi>i</mi></msub><mo>=</mo><msub><mi>f</mi><mi>i</mi></msub><mo stretchy="false">(</mo><msub><mi>I</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>k</mi><mi>i</mi></msub><mo>=</mo><mi>g</mi><mo stretchy="false">(</mo><msub><mi>M</mi><mi>i</mi></msub><mo stretchy="false">)</mo><mtext> </mtext><msub><mi>L</mi><mrow><mi>L</mi><mo separator="true">,</mo><mi>M</mi></mrow></msub><mo>=</mo><mo>−</mo><mi>log</mi><mo>⁡</mo><mfrac><mrow><mi>exp</mi><mo>⁡</mo><mo stretchy="false">(</mo><msub><mi>q</mi><mi>i</mi></msub><msub><mi>k</mi><mi>i</mi></msub><mi mathvariant="normal">/</mi><mi>τ</mi><mo stretchy="false">)</mo></mrow><mrow><mi>e</mi><mi>x</mi><mi>p</mi><mo stretchy="false">(</mo><msub><mi>q</mi><mi>i</mi></msub><msub><mi>j</mi><mi>i</mi></msub><mi mathvariant="normal">/</mi><mi>τ</mi><mo stretchy="false">)</mo><mo>+</mo><munder><mo>∑</mo><mrow><mi>j</mi><mo>≠</mo><mi>i</mi></mrow></munder><mi>e</mi><mi>x</mi><mi>p</mi><mo stretchy="false">(</mo><msub><mi>q</mi><mi>i</mi></msub><msub><mi>k</mi><mi>j</mi></msub><mi mathvariant="normal">/</mi><mi>τ</mi><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">q_i=f_i(I_i)\ k_i=g(M_i)\ L_{L,M}=-\log\frac{\exp(q_ik_i/\tau)}{exp(q_ij_i/\tau)+\sum_{j\not=i}exp(q_ik_j/\tau)}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.1076em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0315em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.109em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace"> </span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">L</span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">M</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.5488em;vertical-align:-1.1218em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05724em;">j</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0572em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:0em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1864em;"><span style="top:-2.4003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span><span class="mrel mtight"><span class="mord vbox mtight"><span class="thinbox mtight"><span class="rlap mtight"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="inner"><span class="mord mtight"><span class="mrel mtight"></span></span></span><span class="fix"></span></span></span></span></span><span class="mrel mtight">=</span><span class="mord mathnormal mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4358em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">e</span><span class="mord mathnormal">x</span><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0315em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.05724em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop">exp</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">q</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0315em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.1218em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+论文发现即使只对图片对齐，其他的模态也能在向量空间中对齐</li>
+</ul>
+<h3 id="预训练大模型">预训练大模型</h3>
+<p>通常采用现成的大模型作为MLLM的LLM部分，大多数模型都遵循GPT3的自回归范式</p>
+<ul>
+<li>Flan-T5：早期的MLLM常用（BLIP-2、InstructBLIP）</li>
+<li>LLaMA：开源，科研领域常用</li>
+<li>Qwen：中文支持</li>
+</ul>
+<p>提高LLM的参数量与上文提到的图像分辨率一样有较大的作用。研究表明，LLM从7B扩大到13B会带来全方面的性能提升，提升到34B时，模型即便只在英文数据下训练也会涌现出零样本中文能力，同样的能力涌现也发生在模型扩大到35B、60B、70B的情况。<br>
+此外，也有工作将小型的MLLM部署在移动设备，如MobileVLM（MobileLLaMA 1.4B/2.7B），让模型在移动设备上高效推理：</p>
+<ul>
+<li>对LLaMA进行缩放，缩小到小参数</li>
+<li>vision encoder后加入一个lightweight dowmsample projector，通过两个下采样操作将<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><msub><mi>N</mi><mi>v</mi></msub><mo>×</mo><msub><mi>D</mi><mi>v</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">f\in\mathbb{R}^{N_v\times{D_v}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8413em;"></span><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1645em;"><span style="top:-2.357em;margin-left:-0.109em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mbin mtight">×</span><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1645em;"><span style="top:-2.357em;margin-left:-0.0278em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span> 下采样到<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>H</mi><mi>v</mi></msub><mo>∈</mo><msup><mi mathvariant="double-struck">R</mi><mrow><mo stretchy="false">(</mo><msub><mi>N</mi><mi>v</mi></msub><mi mathvariant="normal">/</mi><mn>4</mn><mo stretchy="false">)</mo><mo>×</mo><msub><mi>D</mi><mi>v</mi></msub></mrow></msup></mrow><annotation encoding="application/x-tex">H_v\in{\mathbb{R}^{(N_v/4)\times{D_v}}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.08125em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.888em;"></span><span class="mord"><span class="mord"><span class="mord mathbb">R</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.888em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1645em;"><span style="top:-2.357em;margin-left:-0.109em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mord mtight">/4</span><span class="mclose mtight">)</span><span class="mbin mtight">×</span><span class="mord mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1645em;"><span style="top:-2.357em;margin-left:-0.0278em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span> <img src="/2024/10/14/SurveyofMLM/IMG_1021.webp" class="" title="IMG_1021"> <img src="/2024/10/14/SurveyofMLM/Pastedimage20240529105607.png" class="" title="Pastedimage20240529105607">
+</li>
+</ul>
+<p>也有利用MoE（Uni-MoE）的研究，MoE相比dense modal能达到更好的效果。</p>
+<h3 id="模态接口">模态接口</h3>
+<p>由于LLM只能输入文本嵌入，重新训练LLM来适应多模态非常costly，因此有必要引入一个connector来连接编码器和LLM，也可以用专家模型，将图片翻译成文本。</p>
+<blockquote>
+<p>不是已经对齐了吗？还需要这个做什么？<br>
+因为有的编码器没做对齐（如ConvNext）</p>
+</blockquote>
+<img src="/2024/10/14/SurveyofMLM/Pastedimage20240529144244.png" class="" title="Pastedimage20240529144244">
+<p>可学习连接器：将其他模态的嵌入投影到LLM能够理解的空间里。可以分为token级别和feature级别两种。</p>
+<ul>
+<li>token级别：编码器输出的编码转换成token与文本token拼接后进入LLM。<br>
+一种常见的方法是设置一系列可学习的Queries，从编码中提取出信息，如BLIP-2若干注意力块堆叠作为connector，与文本编码进行对比学习<br>
+另一种方法是直接使用MLP进行投影，如LLaVA采用1~2层的MLP层进行对齐。<br>
+基于MM1的研究，connector的类型远没有token量和分辨率来得重要，token级的连接器在VQA表现上会比feature级好。交叉注意力的方法可能需要更复杂的超参调整方法来达到较好的表现。</li>
+<li>feature级别：加入额外模块，实现文本和视觉特征的深度融合。<br>
+Flamingo在冻结的Transformer层间加入额外的交叉注意力层来引入视觉特征（即KV为视觉、Q为文本），从而增强文本特征。<img src="/2024/10/14/SurveyofMLM/Pastedimage20240529210740.png" class="" title="Pastedimage20240529210740"><br>
+CogVLM也在每层中加入视觉专家模块来对齐图文特征，但是采用concat的方法，且QKV参数由LLM初始化<img src="/2024/10/14/SurveyofMLM/Pastedimage20240529210559.png" class="" title="Pastedimage20240529210559"><br>
+LLaMA-Adapter引入可学习prompt到Transformer层中，在前k层Transformer层中将原始LLaMA的特征信息与额外的自适应模块输出的信息进行concat。训练时，原始LLaMA参数冻结，Adapter用零向量初始化并学习更新参数。此外还引入门控机制，学习调整视觉信息的重要程度。<br>
+这些connector的参数量通常比LLM和encoder小得多，如Qwen-VL中的Q-Former只有0.08B参数<br>
+专家模型：例如使用专用的图片字幕模型，基本思路是在不需要训练的情况下将多模态输入转换为文本输入，LLM就能知道图片里的信息。</li>
+<li>VideoChat-Text使用视觉模型来提取文本中的各类信息（如YOLO、I3D、Scene Graph Generators等），并用语音识别模型（Whisper）丰富信息。<br>
+专家模型比较直接，但是不像可学习接口一样灵活，例如生成的文本会在时空信息上产生缺失</li>
+</ul>
+<h2 id="训练策略和数据">训练策略和数据</h2>
+<p>MLLM的训练分成三个部分：预训练、指令微调和对齐微调，每个部分都有不同的数据和目标。</p>
+<h3 id="预训练">预训练</h3>
+<p>预训练的主要目标是对齐各种模态，从多模态空间中学习信息。预训练过程通常需要大量文本对数据，如描述数据。这些描述数据使用自然语言描述各种模态的信息。<br>
+预训练的一种通常场景：给出图片，模型自回归的输出对应描述，然后利用交叉熵损失进行权重更新。通常的训练方法是冻结预训练部分（编码器和LLM），训练一个可学习接口，这种方法基于不损失LLM知识的思想。也有研究尝试更新其他模块的参数，如编码器，使得可更新的参数变多，更加对齐。<br>
+训练效果与训练数据质量息息相关。对于较短且噪声较多的描述，使用低分辨率图片能加快训练速度；对于较长且较清楚的描述，使用高分辨率图片能够消除幻觉现象。ShareGPT4V也发现，对于高质量数据，在预训练时更新视觉编码器能够达到更好的对齐效果。</p>
+<img src="/2024/10/14/SurveyofMLM/Pastedimage20240529224139.png" class="" title="Pastedimage20240529224139">
+<h4 id="数据">数据</h4>
+<p>Pretraining Data Purposes:</p>
+<ol>
+<li>Aligning Different Modalities: Ensuring the model can process and integrate various types of data such as images, text, and audio.</li>
+<li>Providing World Knowledge: Supplying the model with a broad understanding of real-world information.</li>
+</ol>
+<p>Data Granularities:</p>
+<ul>
+<li>Coarse-Grained Data:</li>
+<li>Characteristics: Large volume, sourced from the internet, often short and noisy.</li>
+<li>Examples:
+<ul>
+<li>CC-3M: Contains 3.3M image-caption pairs with raw descriptions derived from alt-text.</li>
+<li>CC-12M: An extension of CC-3M with 12.4M pairs, using a simplified data collection process.</li>
+<li>SBU Captions: 1M image-text pairs sourced from Flickr, filtered for relevance and quality.</li>
+<li>LAION Series:<br>
+- LAION-5B: 5.85B image-text pairs, multilingual with a significant English subset.<br>
+- LAION-COCO: 600M images with synthetic captions generated using BLIP and filtered by CLIP.</li>
+<li>COYO-700M: 747M pairs from CommonCrawl, filtered for quality and content appropriateness.</li>
+</ul>
+</li>
+<li>Fine-Grained Data:
+<ul>
+<li>Characteristics: Higher quality, detailed descriptions, using LLM, typically smaller volume.</li>
+<li>Examples:<br>
+- ShareGPT4V-PT: 1.2M pairs generated using GPT-4V.<br>
+- GPT-4V provide 700K to train a caption modal and use it to generate 1.2M pairs<br>
+- LVIS-Instruct4V: 111K pairs with detailed instructions and annotations.<br>
+- ALLaVA: 709K pairs focusing on aligning image and text modalities precisely.</li>
+</ul>
+</li>
+</ul>
+<p>Data Quality:</p>
+<ul>
+<li>Cleaning and Filtering: Essential for improving model performance and alignment. Methods include using models like CLIP for filtering out low-quality pairs based on similarity thresholds.</li>
+<li>Resolution Adjustments: Depending on the data quality, lower resolutions can be used for noisy data to speed up training, while higher resolutions are preferred for cleaner data to avoid hallucinations.<br>
+This detailed breakdown covers the primary goals and characteristics of the pretraining data used to train multimodal large language models (MLLMs) as outlined in the section</li>
+</ul>
+<img src="/2024/10/14/SurveyofMLM/Pastedimage20240530105831.png" class="" title="Pastedimage20240530105831">
+<p>视频-文本：MSR-VTT（2016），InternVideo（2022）<br>
+音频-文本：WavCaps</p>
+<h3 id="指令微调">指令微调</h3>
+<p>指令即任务描述，指令微调旨在让模型更好地理解和完成指令任务，使得LLM能够完成此前不可见的任务，提升0样本性能。有监督微调需要大量数据，且只能完成特定任务；提示工程能提升少样本性能，但0样本性能提升有限；相比之下，指令微调可以使模型完成没有见过的任务，且于多任务提示工程高度相关。</p>
+<h4 id="训练细节">训练细节</h4>
+<p>多模态指令通常包含一个可选的文本指令和图片-文本对，文本指令通常描述任务，输入可以是图文对（VQA问题），或者单独的图片（图片描述任务），输出为该条件下的回答。指令模版是灵活的，取决于手工设计，也可以通过多轮对话提供指令。<br>
+一个多模态指令可以定义为以下三元组<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mi>I</mi><mo separator="true">,</mo><mi>M</mi><mo separator="true">,</mo><mi>R</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(I,M,R)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="mclose">)</span></span></span></span>，I表示指令，M表示模态输入，R表示基于以上的回答，MLLM通过给定的指令和模态输入预测答案，即：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>A</mi><mo>=</mo><mi>f</mi><mo stretchy="false">(</mo><mi>I</mi><mo separator="true">,</mo><mi>M</mi><mo separator="true">,</mo><mi>θ</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">A=f(I,M,\theta)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">A</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="mclose">)</span></span></span></span></span></p>
+<p>A为预测答案，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>为MLLM的参数。训练目标通常是LLM的自回归训练目标，在此基础上，MLLM训练预测下一个token，训练目标即：</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>L</mi><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><mi>log</mi><mo>⁡</mo><mrow><mi>p</mi><mo stretchy="false">(</mo><msub><mi>R</mi><mi>i</mi></msub><mi mathvariant="normal">∣</mi><mi>I</mi><mo separator="true">,</mo><msub><mi>R</mi><mrow><mo>&lt;</mo><mi>i</mi></mrow></msub><mo separator="true">;</mo><mi>θ</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">L(\theta)=-\sum_{i=1}^{N}\log{p(R_i|I,R_{&lt;i};\theta)}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">L</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.106em;vertical-align:-1.2777em;"></span><span class="mord">−</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0077em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">∣</span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.00773em;">R</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0077em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mrel mtight">&lt;</span><span class="mord mathnormal mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1774em;"><span></span></span></span></span></span></span><span class="mpunct">;</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="mclose">)</span></span></span></span></span></span></p>
+<p>N表示序列长度</p>
+<h4 id="数据选择">数据选择</h4>
+<p>指令数据的灵活性决定了和任务的多样性使其数据更难收集，有三种方法：数据适应、自指导和数据混合。</p>
+<ul>
+<li>数据适应：特定任务的数据集有非常丰富且高质量的数据，因此有研究将各类数据集融合，构建出一个用于指令微调的数据集。例如VQA数据集中通常由图文输入和文本输出构成，这种结构能够自然地转换为多模态指令微调数据。有些工作手作一些候选指令，在微调时采样其中一条；也有的工作设计了一些指令然后提示GPT生成更多的指令。<br>
+现有的VQA和图像描述数据集通常很简单，因此直接用来进行微调可能会影响MLLM的输出长度，有两种方法解决这个问题：1. 直接在指令中指出，如ChatBridge直接用short and brief来表示短回答数据，sentence或single sentence表示粗粒度数据；2. 延长现有回答的长度，如M3IT用ChatGPT重新生成答案。</li>
+<li>自指导：现有的数据库无法满足现实对话场景的各种需求，例如多轮对话。为了解决这个问题，有研究从自指导中获取样本，即利用LLM通过少量手工标注的样本生成文本指令数据。具体而言，就是人类手工编写一些指令示范，然后在示范下，GPT之类的模型再生成更多指令。LLaVA则更进一步，将图片转换为包含信息和图片框的文本，并在指令和示范的指导下，让仅限文本的GPT-4生成新数据，按照这种方法生产的数据集为 LLaVA-Instruct-150k。后续的如Mini-GPT4、Chat-Bridge、GPT4Tools、DetGPT也采用这种方法生成不同需求的数据集。随着GPT-4V的发布，更多的工作采用这个模型生成高质量数据，如LVIS-Instruct4V、ALLaVA <img src="/2024/10/14/SurveyofMLM/Pastedimage20240530171008.png" class="" title="Pastedimage20240530171008"></li>
+<li>数据混合：除了多模态指令数据，纯文本的问答对话也可以用于提升对话专业性和指令遵循能力。如LaVIN直接从纯文本和多模态数据中进行采样，MultiInstruct则探索了两种数据的不同训练策略：混合两种数据微调，或先采用文本数据再采用多模态数据。</li>
+</ul>
+<h4 id="数据质量">数据质量</h4>
+<p>近期的研究发现数据质量与数据数量同等重要。Lynx的研究发现采用大量噪声较多的数据微调并不比采用噪声较少的小数据训练效果好；Wei的研究发现较少的高质量指令微调数据可以使模型达到更好的效果，提出了评估数据质量的方法和对应的过滤策略：</p>
+<ul>
+<li>提示多样性：Lynx证明了提示词的多样性能够提升模型表现和泛化能力</li>
+<li>任务覆盖程度：Du的研究发现视觉推理任务相比描述图像和VQA任务能更好的提高模型表现，此外，这项研究也发现增强指令的复杂度，相比增加任务多样性和加入细粒度图片描述，更有益。</li>
+</ul>
+<h3 id="对齐微调">对齐微调</h3>
+<p>对齐微调更多地用于模型对齐特定人类需求的场景，例如更少的幻觉现象。现有的方法包括基于人类反馈的强化学习（RLHF）和直接偏好优化（DPO）。</p>
+<h4 id="训练细节-2">训练细节</h4>
+<p>RLHF：利用强化学习算法让LLM对齐人类需求，通过在训练循环中加入人类监督。以InstructGPT举例，RLHF分为以下三个部分：</p>
+<ol>
+<li>有监督微调：这一步旨在微调一个预训练模型，以使其输出期望结果，这个微调好的模型被称作policy model。当然也可以直接使用预训练模型，跳过这一步骤。</li>
+<li>奖励建模：这一步使用偏好对训练一个奖励模型。给定模态数据x和回复对<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><msub><mi>y</mi><mi>w</mi></msub><mo separator="true">,</mo><msub><mi>y</mi><mi>l</mi></msub><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(y_w,y_l)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>，奖励模型<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">r_\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>，给期望回复yw更高的分数，yl则相反，奖励模型与上面的policy model结构相似，训练目标如下：_<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>L</mi><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><msub><mi mathvariant="double-struck">E</mi><mrow><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><msub><mi>y</mi><mi>w</mi></msub><mo separator="true">,</mo><msub><mi>y</mi><mi>l</mi></msub><mo stretchy="false">)</mo><mo>∼</mo><mi>D</mi></mrow></msub><mo stretchy="false">[</mo><mi>log</mi><mo>⁡</mo><mo stretchy="false">(</mo><mi>σ</mi><mo stretchy="false">(</mo><msub><mi>r</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><msub><mi>y</mi><mi>w</mi></msub><mo stretchy="false">)</mo><mo>−</mo><msub><mi>r</mi><mi>θ</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><msub><mi>y</mi><mi>l</mi></msub><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo stretchy="false">)</mo><mo stretchy="false">]</mo><mo separator="true">,</mo><mi>D</mi><mo>=</mo><mo stretchy="false">{</mo><mi>x</mi><mo separator="true">,</mo><msub><mi>y</mi><mi>w</mi></msub><mo separator="true">,</mo><msub><mi>y</mi><mi>l</mi></msub><mo stretchy="false">}</mo></mrow><annotation encoding="application/x-tex">L(\theta)=-\mathbb{E}_{(x,y_w,y_l)\sim{D}}[\log(\sigma(r_\theta(x,y_w)-r_\theta(x,y_l)))],D=\{x,y_w,y_l\}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">L</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.1052em;vertical-align:-0.3552em;"></span><span class="mord">−</span><span class="mord"><span class="mord mathbb">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.5198em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mathnormal mtight">x</span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1645em;"><span style="top:-2.357em;margin-left:-0.0359em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span><span class="mpunct mtight">,</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3448em;"><span style="top:-2.3488em;margin-left:-0.0359em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.1512em;"><span></span></span></span></span></span></span><span class="mclose mtight">)</span><span class="mrel mtight">∼</span><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">D</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.3552em;"><span></span></span></span></span></span></span><span class="mopen">[</span><span class="mop">lo<span style="margin-right:0.01389em;">g</span></span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03588em;">σ</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02778em;">θ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)))]</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">D</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.02691em;">w</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.01968em;">l</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">}</span></span></span></span></span></p>
+</li>
+<li>强化学习：Proximal Policy Optimization算法用于优化强化学习策略模型，每个token的KL散度惩罚被加入学习目标中，防止策略过于偏离原始策略：<img src="/2024/10/14/SurveyofMLM/Pastedimage20240531154028.png" class="" title="Pastedimage20240531154028"><br>
+有研究利用RLHF来达到更好的多模态对齐水平。LLaVA-RLHF基于LLaVA模型，搜集了人类偏好数据来微调模型，从而达到更少的幻觉。</li>
+</ol>
+<p>DPO： 利用简单的二元分类损失从人类偏好的标注中学习。与RLHF不同的是，DPO不需要学习一个显式的奖励模型，所以学习步骤可以简化成两部分：1. 人类偏好数据收集；2. 偏好学习。<img src="/2024/10/14/SurveyofMLM/Pastedimage20240604160144.png" class="" title="Pastedimage20240604160144"><br>
+RLHF-V搜集细粒度的偏好信息来减少模型反馈中的幻觉信息，使用获取的信息来进行密集的DPO；Silkie则通过提示学习从GPT4-V中搜集信息，通过DPO方式将偏好监督信息蒸馏到指令微调模型中。</p>
+<h4 id="数据-2">数据</h4>
+<p>通常对模型回应搜集反馈，如决定哪个回答更好，这些数据集往往比之前的更小。</p>
+<ul>
+<li>LLaVA-RLHF：10k人类生产的偏好数据，关注诚实性和帮助性，通常用于减少幻觉现象；</li>
+<li>RLHF-V：7.5k细粒度人类反馈数据，文本段级别的幻觉纠正；</li>
+<li>VLFeedback：380K比较对，用GPT-4V生成，关注帮助性、可信度和道德。</li>
+</ul>
+<h2 id="评估">评估</h2>
+<p>相比较传统的多模态方法，MLLM的应用领域很广泛，同时展现出一些全新的能力，因此需要专门设计新的评估方法。</p>
+<h3 id="封闭式">封闭式</h3>
+<p>指回答选项在一个给定的限制范围内，通常基于特定任务的数据集。<br>
+评估可以设置为零样本任务或者微调任务。零样本任务将广泛任务的数据集分为训练和测试，模型训练完之后在测试集上测试不存在的数据和任务；微调则针对特定任务训练。一般有采用Science QA、biomedical VQA、CIDEr Score等。<br>
+以上模型都缺乏广泛的多模态能力测试，所以现在也有针对MLLM设计的测试任务：</p>
+<ul>
+<li>MME：14项感知和认知任务，手工制作的指令-回答对</li>
+<li>MMBench：专门测试多维度模型能力，利用GPT将回复与选项对应</li>
+<li>Video-ChatGPT / Video-Bench：专注视频领域</li>
+<li>专注特定领域能力的测试：如POPE（幻觉）</li>
+</ul>
+<h3 id="开放式">开放式</h3>
+<p>MLLM作为问答机器人，这类评估方法比较难评估。<br>
+常见的方法有手工评分、GPT评分和案例评估</p>
+<ul>
+<li>手工：引入手造数据，人工评估特定领域能力。如mPLUG-Owl测试视觉能力，包括自然图像理解、图表、流程图理解；GPT4Tools测试零样本和微调能力，包括思想、行动、论点和整体能力</li>
+<li>GPT：使用GPT代替人类，通常测试多模态对话能力。如LLaVA从COCO验证集采样30张图，利用GPT4生成一个短问题、一个长问题和一个复杂的推理问题，GPT4和模型结果使用GPT4进行比较；这种范式被应用在许多测试方法中，采用ChatGPT或GPT4输出结果或比较。</li>
+<li>GPT4方法的问题在于只能根据文本输出结果，所以也有使用GPT4V的方法，如Woodpecker利用GPT4V评估性能</li>
+<li>案例：在不同的应用场景下评估模型能力。</li>
+</ul>
+<h2 id="扩展">扩展</h2>
+<p>提升MLLM的能力，引入更强大的能力和更广泛的用途。</p>
+<ul>
+<li>
+<p>粒度支持：为了达到更好地交互，MLLM在输入和输出粒度上不断细化。<br>
+输入端，图片从整张图到区域，甚至到像素级输入。例如Shikra、Gpt4roi、Pink支持区域输入，用户可以采用自然语言形式的边界框表示特定区域，从而更灵活地与助手进行交互。Osprey、Glamm、Ferret支持像素级输入，Ferret通过设计一种混合表示方案（点、框，自由区域），支持更灵活的引用；Osprey通过利用分割模型支持点输入，由于分割模型的强大能力，Ospery可以通过单击的方法特定一个实体或者部分。</p>
+<blockquote>
+<p>Ferret方法：选取区域作为masked points过一个sampling，然后KNN对相邻点进行特征融合，最后KNN进行max pooling</p>
+</blockquote>
+<p>输出部分，对齐能力随着输入能力的发展而提升。如Shikra支持基于图片框选标记的回答，这导致更高的精度和更精细的推理能力；LISA支持掩码级理解和推理，使得像素级对齐成为可能</p>
+</li>
+<li>
+<p>模态支持：包括输入和输出模态。<br>
+输入：3D点云<br>
+输出：图片、音频、视频（很多时候采用Diffusion Model）<br>
+如NExT-GPT提出一个支持多模态输入输出的框架，利用Diffusion model作为decoder，整个框架是encoder-decoder结构，LLM作为理解和推理中枢</p>
+</li>
+<li>
+<p>语言支持：非英语数据集缺乏导致语言支持少，所以现在的工作致力于开发新语言。VisCPM设计多步训练策略来将模型能力迁移到多语言领域，具体的，模型将英文作为中枢语言，利用多语言LLM，通过在指令微调部分引入翻译过的样本，将多模态能力迁移到中文。Qwen-VL在预训练过程中将中文数据融入训练数据集中，占22.7%</p>
+</li>
+<li>
+<p>场景/任务扩展：考虑实际条件的特定场景或扩展到具有特定专长的下游任务。<br>
+一个趋势是适应更特定的现实生活的场景。MobileVLM缩小模型参数量，使得能在计算资源紧张的情况下运行。有些设计和技术被应用于移动设备部署，如模型压缩、量化技术等。其他工作开发了agents来与现实世界交互，如特别设计的GUI（CogAgent、AppAgent、Mobile-Agent），这些模型擅长通过一步步引导和规划来完成用户给定的任务，做到更好地人机交互。<br>
+另一个趋势是将MLLM对齐特定任务，用于不同领域的问题，如文档理解、医药领域等。文档理解有mPLUG-DocOwl，利用不同形式的文档级数据进行微调，从而完成无需OCR的文档理解。TextMonkey引入文档理解的多种任务来提升任务表现。除了传统的文档图像和场景文本外，还增加了位置相关的任务以减少幻觉，帮助模型学会根据视觉信息作出反应。MLLM还可以用于医药领域，通过也引入对应知识。如LLaVA-Med基于LLaVA引入医药知识，开发了医药图片理解和QA的模型。</p>
+</li>
+</ul>
+<h2 id="幻觉">幻觉</h2>
+<p>MLLM的幻觉指MLLM的输出与参考图片不一致的现象。<br>
+现有的研究可以分为一下三个方向：</p>
+<ol>
+<li>存在幻觉：指MLLM指出了图片中不存在的物品</li>
+<li>属性幻觉：指MLLM描述的物品属性出错，例如颜色。属性幻觉基于对于图片物品的识别，往往与存在幻觉相关</li>
+<li>关系幻觉：指MLLM对物品间的关系描述出错，例如两个物品的相对位置。这是个比较复杂的幻觉，往往与存在幻觉有关。</li>
+</ol>
+<p>评估方法：</p>
+<ol>
+<li>CHAIR：在开放字幕中评估幻觉现象，评估文本中出现的错误物品或所有物品中的错误物品量</li>
+<li>POPE：闭集评估方法，多个提示询问某个物品是否存在。还包含更多挑战性问题，评估模型的数据分析能力。最终结果检测句子中的是否字样，将开放回答转换为封闭回答。</li>
+<li>MME：更详细的评估，询问物品的存在、数量、位置、颜色等信息。</li>
+<li>HaELM：通过text-only LLM评估MLLM回答和参考答案的差异</li>
+<li>Woodpecker：使用GPT-4V，基于图片评估回答</li>
+<li>Faith-Score：将句子分解后分别评估，粒度更细</li>
+<li>AMBER：无需LLM的方法，包含辨识任务和生成任务，评估三种幻觉</li>
+</ol>
+<p>优化方法：</p>
+<ol>
+<li>预纠正：预先搜集特定的负面数据用于微调。<br>
+LRV-Insturction添加了不同语义级别的负面数据用于鼓励模型输出可信信息。<br>
+LLaVA-RLHF搜集人类偏好的图文对，利用强化学习方法微调，达到与人类偏好对齐的效果</li>
+<li>过程内纠正：研究幻觉产生的原因并提出对应的解决方法。一般采用特别设计的结构或语义表示。<br>
+HallE-Switch研究了存在幻觉出现的原因，猜想视觉encoder没有提取出对应物品，基于LLM的知识回答是存在幻觉的原因，因此论文提出了一系列的控制方法和对应的训练策略来控制LLM的想象程度。<br>
+VCD发现，数据集偏差和LLM中已经学习到的语言规律和模式会导致存在幻觉，当图片中的噪声较多时，MLLM倾向于依赖语言的先验知识而不是图片内容，导致幻觉。因此论文设计了一个对比机制，对比原始输入和扭曲输入来对抗LVLM的统计偏差和语言先验，惩罚函数：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>+</mo><mi>α</mi><mo stretchy="false">)</mo><mi>l</mi><mi>o</mi><mi>g</mi><mi>i</mi><mi>t</mi><mi>s</mi><mo stretchy="false">(</mo><mi>y</mi><mi mathvariant="normal">∣</mi><mi>x</mi><mo separator="true">,</mo><mi>v</mi><mo stretchy="false">)</mo><mo>−</mo><mi>α</mi><mi>l</mi><mi>o</mi><mi>g</mi><mi>i</mi><mi>t</mi><mi>s</mi><mo stretchy="false">(</mo><mi>y</mi><mi mathvariant="normal">∣</mi><mi>x</mi><mo separator="true">,</mo><msup><mi>v</mi><mi mathvariant="normal">‘</mi></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(1+\alpha)logits(y|x,v)-\alpha logits(y|x,v^`)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mclose">)</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">s</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mord">∣</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0991em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mord mathnormal" style="margin-right:0.01968em;">l</span><span class="mord mathnormal">o</span><span class="mord mathnormal" style="margin-right:0.03588em;">g</span><span class="mord mathnormal">i</span><span class="mord mathnormal">t</span><span class="mord mathnormal">s</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mord">∣</span><span class="mord mathnormal">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.03588em;">v</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8491em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">‘</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>。为了防止惩罚函数对整个模型的知识造成影响，论文实施一种自适应的可信度约束，根据输出分布筛选较靠前的几个选项<img src="/2024/10/14/SurveyofMLM/ad8536d07db84303b17952dd3d7a376b.webp" class="" title="ad8536d07db84303b17952dd3d7a376b.webp"><br>
+HACL研究了文本和语言的嵌入空间，将匹配的跨模态表示拉近，无幻觉和幻觉文本表示被拉远。</li>
+<li>后纠正：修改输出内容<br>
+WoodPecker结合专家模型来补充图像的上下文信息，并设计一个pipeline来纠正幻觉，每步的中间结果都可检查，对象在图像中都是有依据的。<br>
+LURE训练了一个专用的检查器来掩盖描述中高度不确定的对象并重新生成回答。</li>
+</ol>
+<h2 id="扩展技术">扩展技术</h2>
+<h3 id="多模态ICL">多模态ICL</h3>
+<p>ICL的好处：1. 只需要通过少量样本、可选的指引和外推的新问题进行学习，就能够模型对应样本，解决复杂的问题和未见任务；2. 不需要专门训练，可以灵活引入不同架构。一个应用场景就是指令微调。<br>
+多模态ICL（MICL）可以通过引入原始样本的上下文样本集合实现。</p>
+<h4 id="ICL能力的发展">ICL能力的发展</h4>
+<ul>
+<li>MIMIC-IT：通过多模态上下文格式化的指令数据，将上下文学习和指令微调相结合，在字幕任务中提升了少样本表现。</li>
+<li>Emu：基于Flamingo，在生成和对应的训练语料中引入额外模块，例如Stable Diffusion，从而学习额外的视觉监督信息，支持更灵活的输出格式。</li>
+<li>Sheng et al：不用专门的图像编码器，而是采用共享嵌入层的统一量化方案。<br>
+也有在特定设置下提升few-shot学习能力的研究：</li>
+<li>Link-context learning专注加强图像-标签之间的因果关系，指定积极和消极的数据对形成对比训练策略；</li>
+<li>MMICL关注多相关图片的推理能力，将交错的图文数据转换到统一格式来加强图文联系；</li>
+<li>Jeong通过过滤较不相关的上下文，促进连贯的回答。</li>
+</ul>
+<h4 id="应用">应用</h4>
+<p>两个场景：</p>
+<ol>
+<li>解决多样的视觉推理任务。通常是提供一些特定任务的样例给模型学习，模型泛化到一些新的相似问题上。LLM从样例中学习任务是什么和输出格式是什么，最终生成给定结果。</li>
+<li>教LLM使用外部工具。通常涉及更细粒度的信息，由一连串可按顺序执行的步骤组成，以完成任务，这类任务与CoT密切相关。</li>
+</ol>
+<h3 id="多模态CoT">多模态CoT</h3>
+<p>指引导LLM一步步思考，回答推理过程，最终输出答案。</p>
+<h4 id="学习范例">学习范例</h4>
+<ol>
+<li>微调方法：通常涉及精心设计的数据集<br>
+ScienceQA：科学相关的QA数据库，包含讲座和讲解，可用于CoT推理学习和模型微调。<br>
+Multimodal-CoT：使用ScienceQA，引导模型进行两步输出（推理过程和结果）<br>
+CoT-PT：通过提示调整和特定步骤的视觉偏差的结合学习隐式推理链。</li>
+<li>few/zero-shot：更高效<br>
+few shot需要手造数据给模型参考。<br>
+zero shot单纯依靠嵌入的知识和推理能力，通过“Let’s think frame by frame”、“What happened between these two keyframes”之类的引导让模型思考。<br>
+一些工作（Mm-react、visual chatgpt）用任务描述和外部工具的使用来引导模型将任务分解。</li>
+</ol>
+<h4 id="推理链设置">推理链设置</h4>
+<p>两个方面：结构和长度。<br>
+结构方面，单链的方法通过一步步推理得到问题-推理过程-答案的链条；树形链条（如DDCoT）将问题分解成多个子问题，每个由LLM或者视觉专家模型来生成推理过程，LLM再利用推理过程求出答案。<br>
+长度方面，可以分为自适应长度（mm-react、Learn to explain、chameleon、visual programming、visual chatgpt）和预定义长度（Caption anything、Visual chain of thought、Let’s Think Frame by Frame）。</p>
+<h4 id="生成格式">生成格式</h4>
+<ol>
+<li>填空式（Visual chain of thought、VideoCOT）</li>
+<li>预测式（mm-react、chameleon）</li>
+</ol>
+<h3 id="LLM辅助视觉推理">LLM辅助视觉推理</h3>
+<p>引入外部工具或视觉模型来辅助视觉推理任务，将LLM作为具有不同作用的助手，构建特定任务或通用任务的视觉推理系统。<br>
+相比现有的视觉推理模型，这些方法能够有强大的泛化能力，涌现能力和更好的交互和控制能力。</p>
+<h4 id="学习范例-2">学习范例</h4>
+<ol>
+<li>无需训练的方法：直接prompt LLM，利用原有知识完成任务。<br>
+few-shot：手造数据来引导LLM生成程序或一系列执行步骤，用于外加模型和模块<br>
+zero-shot：直接利用LLM知识和能力prompt LLM（PointCLIP V2、CAT）</li>
+<li>微调：微调方法提升LLM的工具使用能力（GPT4Tools）,利用工具相关的数据集</li>
+</ol>
+<h4 id="功能">功能</h4>
+<ol>
+<li>LLM控制器：与CoT相关，系统在一轮内完成任务<br>
+将复杂任务分解为简单的子任务，将子任务分配给合适的模块。前一步通常需要LLM的CoT能力。LLM通过提示词输出任务计划或直接调用模块工作（VisProg），此外还需要输出模块输入的参数名。这需要手造的上下文样例作为参考，与优化推理链（least-to-most提示）技术有关。</li>
+<li>LLM决策器：与CoT相关，系统在多轮内完成任务<br>
+总结当前的上下文和历史信息，决定当前步骤下的可用信息是否足够回答问题或完成任务，然后规划和总结答案。</li>
+<li>LLM语义提炼器：LLM将信息整合成连贯流畅的自然语言句子，或根据不同要求生成文本</li>
+</ol>
+<h2 id="挑战和未来方向">挑战和未来方向</h2>
+<ol>
+<li>MLLM在长上下文方面受限，这限制了需要更多多模态token的模型能力（长视频、长文档）</li>
+<li>MLLM需要理解更复杂的指令，如当前生成QA数据的主要方法仍然是利用GPT4V，其他模型表现较差</li>
+<li>MICL和MCoT能力仍有待提高</li>
+<li>利用MLLM开发具身智能体</li>
+<li>安全议题，防止MLLM被引导生成具有偏差、不可信的数据</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://tony1026.github.io">Tony.Lin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://tony1026.github.io/2024/10/14/SurveyofMLM/">http://tony1026.github.io/2024/10/14/SurveyofMLM/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://tony1026.github.io" target="_blank">Tony.Lin的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/NLP/">NLP</a><a class="post-meta__tags" href="/tags/Survey/">Survey</a></div><div class="post-share"><div class="addtoany"><div class="a2a_kit a2a_kit_size_32 a2a_default_style"><a class="a2a_button_qzone"></a><a class="a2a_button_twitter"></a><a class="a2a_button_wechat"></a><a class="a2a_button_telegram"></a><a class="a2a_button_email"></a><a class="a2a_button_copy_link"></a><a class="a2a_dd" target="_blank" rel="noopener" href="https://www.addtoany.com/share"></a></div></div><script async="async" src="https://static.addtoany.com/menu/page.js"></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/10/25/%E4%BA%8C%E5%8D%81%E4%BA%8C/" title="二十二"><img class="cover" src="/2024/10/25/%E4%BA%8C%E5%8D%81%E4%BA%8C/image.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">二十二</div></div><div class="info-2"><div class="info-item-1">这两年，每到要写这种长文的时候，总是感觉自己越来越力不从心了。大概是接触的技术类、点评类文章越来越多、写得越多，求于外物的事情考虑得越多，反求诸己的事情反而考虑得越少。 当然也有可能是AI用得太多了，特别是GPT一类的通用语言模型爆火之后，虽然比不上手机一般成为“人工义肢”的存在，但是大模型说是工业革命一般的产物，于我而言并不夸张。至少文本上的一些dirty work，我现在几乎第一时间想到让LLM代劳，以至于硬磨半天这篇blog写什么之后，甚至问了下 ChatGPT...</div></div></div></a><a class="pagination-related" href="/2024/10/14/hello-world/" title="Hello World"><img class="cover" src="/images/background.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Hello World</div></div><div class="info-2"><div class="info-item-1">把以前瞎折腾的blog推倒重做了，现在用的hexo，主题是butterfly，评论区用的DisqusJS， 在琢磨怎么上Share Buttom分享页用的AddToAny 以前的文章还没上，懒得上了Orzzz 可能回头把以前的论文笔记丢上来 就这样QWQ </div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="disqusjs-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/images/icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Tony.Lin</div><div class="author-info-description">Tony.Lin的博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">5</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Tony1026"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Tony1026" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:tonylin1026@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a><a class="social-icon" href="https://x.com/T_L1026" target="_blank" title="Twitter"><i class="fa-brands fa-x-twitter" style="color: #000000;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">这里还不知道要写什么</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Architecture"><span class="toc-number">1.</span> <span class="toc-text">Architecture</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E6%80%81%E7%BC%96%E7%A0%81%E5%99%A8"><span class="toc-number">1.1.</span> <span class="toc-text">模态编码器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%84%E8%AE%AD%E7%BB%83%E5%A4%A7%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.2.</span> <span class="toc-text">预训练大模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E6%80%81%E6%8E%A5%E5%8F%A3"><span class="toc-number">1.3.</span> <span class="toc-text">模态接口</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83%E7%AD%96%E7%95%A5%E5%92%8C%E6%95%B0%E6%8D%AE"><span class="toc-number">2.</span> <span class="toc-text">训练策略和数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%84%E8%AE%AD%E7%BB%83"><span class="toc-number">2.1.</span> <span class="toc-text">预训练</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE"><span class="toc-number">2.1.1.</span> <span class="toc-text">数据</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%87%E4%BB%A4%E5%BE%AE%E8%B0%83"><span class="toc-number">2.2.</span> <span class="toc-text">指令微调</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83%E7%BB%86%E8%8A%82"><span class="toc-number">2.2.1.</span> <span class="toc-text">训练细节</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%80%89%E6%8B%A9"><span class="toc-number">2.2.2.</span> <span class="toc-text">数据选择</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E8%B4%A8%E9%87%8F"><span class="toc-number">2.2.3.</span> <span class="toc-text">数据质量</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9%E9%BD%90%E5%BE%AE%E8%B0%83"><span class="toc-number">2.3.</span> <span class="toc-text">对齐微调</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%AD%E7%BB%83%E7%BB%86%E8%8A%82-2"><span class="toc-number">2.3.1.</span> <span class="toc-text">训练细节</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE-2"><span class="toc-number">2.3.2.</span> <span class="toc-text">数据</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%84%E4%BC%B0"><span class="toc-number">3.</span> <span class="toc-text">评估</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B0%81%E9%97%AD%E5%BC%8F"><span class="toc-number">3.1.</span> <span class="toc-text">封闭式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E6%94%BE%E5%BC%8F"><span class="toc-number">3.2.</span> <span class="toc-text">开放式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A9%E5%B1%95"><span class="toc-number">4.</span> <span class="toc-text">扩展</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B9%BB%E8%A7%89"><span class="toc-number">5.</span> <span class="toc-text">幻觉</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A9%E5%B1%95%E6%8A%80%E6%9C%AF"><span class="toc-number">6.</span> <span class="toc-text">扩展技术</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E6%A8%A1%E6%80%81ICL"><span class="toc-number">6.1.</span> <span class="toc-text">多模态ICL</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ICL%E8%83%BD%E5%8A%9B%E7%9A%84%E5%8F%91%E5%B1%95"><span class="toc-number">6.1.1.</span> <span class="toc-text">ICL能力的发展</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BA%94%E7%94%A8"><span class="toc-number">6.1.2.</span> <span class="toc-text">应用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E6%A8%A1%E6%80%81CoT"><span class="toc-number">6.2.</span> <span class="toc-text">多模态CoT</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E8%8C%83%E4%BE%8B"><span class="toc-number">6.2.1.</span> <span class="toc-text">学习范例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8E%A8%E7%90%86%E9%93%BE%E8%AE%BE%E7%BD%AE"><span class="toc-number">6.2.2.</span> <span class="toc-text">推理链设置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E6%A0%BC%E5%BC%8F"><span class="toc-number">6.2.3.</span> <span class="toc-text">生成格式</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#LLM%E8%BE%85%E5%8A%A9%E8%A7%86%E8%A7%89%E6%8E%A8%E7%90%86"><span class="toc-number">6.3.</span> <span class="toc-text">LLM辅助视觉推理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E8%8C%83%E4%BE%8B-2"><span class="toc-number">6.3.1.</span> <span class="toc-text">学习范例</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%9F%E8%83%BD"><span class="toc-number">6.3.2.</span> <span class="toc-text">功能</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%91%E6%88%98%E5%92%8C%E6%9C%AA%E6%9D%A5%E6%96%B9%E5%90%91"><span class="toc-number">7.</span> <span class="toc-text">挑战和未来方向</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/10/25/%E4%BA%8C%E5%8D%81%E4%BA%8C/" title="二十二"><img src="/2024/10/25/%E4%BA%8C%E5%8D%81%E4%BA%8C/image.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="二十二"/></a><div class="content"><a class="title" href="/2024/10/25/%E4%BA%8C%E5%8D%81%E4%BA%8C/" title="二十二">二十二</a><time datetime="2024-10-25T13:11:03.000Z" title="发表于 2024-10-25 21:11:03">2024-10-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/10/14/SurveyofMLM/" title="《A Survey on Multimodal Large Language Models》阅读笔记"><img src="/2024/10/14/SurveyofMLM/Pastedimage20240528154443.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="《A Survey on Multimodal Large Language Models》阅读笔记"/></a><div class="content"><a class="title" href="/2024/10/14/SurveyofMLM/" title="《A Survey on Multimodal Large Language Models》阅读笔记">《A Survey on Multimodal Large Language Models》阅读笔记</a><time datetime="2024-10-14T10:39:34.000Z" title="发表于 2024-10-14 18:39:34">2024-10-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/10/14/hello-world/" title="Hello World"><img src="/images/background.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hello World"/></a><div class="content"><a class="title" href="/2024/10/14/hello-world/" title="Hello World">Hello World</a><time datetime="2024-10-14T02:39:34.000Z" title="发表于 2024-10-14 10:39:34">2024-10-14</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2024 By Tony.Lin</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">2</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script>(() => {
+  const panguFn = () => {
+    if (typeof pangu === 'object') pangu.autoSpacingPage()
+    else {
+      btf.getScript('https://cdn.jsdelivr.net/npm/pangu/dist/browser/pangu.min.js')
+        .then(() => {
+          pangu.autoSpacingPage()
+        })
+    }
+  }
+
+  const panguInit = () => {
+    if (false){
+      GLOBAL_CONFIG_SITE.isPost && panguFn()
+    } else {
+      panguFn()
+    }
+  }
+
+  btf.addGlobalFn('pjaxComplete', panguInit, 'pangu')
+  document.addEventListener('DOMContentLoaded', panguInit)
+})()</script><div class="js-pjax"><script>(async () => {
+  const showKatex = () => {
+    document.querySelectorAll('#article-container .katex').forEach(el => el.classList.add('katex-show'))
+  }
+
+  if (!window.katex_js_css) {
+    window.katex_js_css = true
+    await btf.getCSS('https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css')
+    if (true) {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/katex/dist/contrib/copy-tex.min.js')
+    }
+  }
+
+  showKatex()
+})()</script><script>(() => {
+  const initDisqusjs = () => {
+    window.disqusjs = null
+    disqusjs = new DisqusJS(Object.assign({
+      shortname: 'tony1026',
+      identifier: '/2024/10/14/SurveyofMLM/',
+      url: 'http://tony1026.github.io/2024/10/14/SurveyofMLM/',
+      title: '《A Survey on Multimodal Large Language Models》阅读笔记',
+      apikey: 'Ei70jeXvalDtd76cGA5UhQqFhJXndfgHw7I4Y49d5TSPMPobMfCg6ngUiE9GlVTq',
+    },null))
+
+    disqusjs.render(document.getElementById('disqusjs-wrap'))
+  }
+
+  const themeChange = () => {
+    const ele = document.getElementById('disqus_thread')
+    if(!ele) return
+    disqusjs.destroy()
+    initDisqusjs()
+  }
+
+  btf.addGlobalFn('themeChange', themeChange, 'disqusjs')
+
+  const loadDisqusjs = async() => {
+    if (window.disqusJsLoad) initDisqusjs()
+    else {
+      await btf.getCSS('https://cdn.jsdelivr.net/npm/disqusjs/dist/browser/styles/disqusjs.min.css')
+      await btf.getScript('https://cdn.jsdelivr.net/npm/disqusjs/dist/browser/disqusjs.es2015.umd.min.js')
+      initDisqusjs()
+      window.disqusJsLoad = true
+    }
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqusjs-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=tony1026&api_key=Ei70jeXvalDtd76cGA5UhQqFhJXndfgHw7I4Y49d5TSPMPobMfCg6ngUiE9GlVTq&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if ('Disqusjs' === 'Disqusjs' || !false) {
+    if (false) btf.loadComment(document.getElementById('disqusjs-wrap'), loadDisqusjs)
+    else {
+      loadDisqusjs()
+      GLOBAL_CONFIG_SITE.isPost && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqusjs
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
